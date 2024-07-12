@@ -30,6 +30,7 @@ export class PedidoUseCases {
         let valorPedido: number = 0.0
 
         if (cpf) {
+            //TODO CONSULTA API CLIENTE 
             cliente = await this.clienteUseCases.buscaUltimaVersao(cpf).then()
         } else {
             cliente = null;
@@ -80,6 +81,7 @@ export class PedidoUseCases {
         let valorPedido: number = 0.0
 
         if (cpf) {
+            //TODO CONSULTA API CLIENTE 
             cliente = await this.clienteUseCases.buscaUltimaVersao(cpf).then()
         } else {
             cliente = null;
@@ -246,6 +248,7 @@ export class PedidoUseCases {
 
         console.info(pedido)
 
+        //TODO CHAMAR API DE PAGAMENTO
         await this.pagamentoUseCases.criar(new Pagamento(
             pedido.getCliente()?.getCpf()!,
             pedido.getCliente()?.getNome()!,
@@ -265,6 +268,7 @@ export class PedidoUseCases {
 
         console.info(pedido)
 
+        //TODO CHAMAR API DE PAGAMENTO
         const pagamento = await this.pagamentoUseCases.buscaUltimaVersao(pedido.getCodigoPedido()!).then()
 
         pedido.setPagamento(pagamento)
@@ -289,6 +293,7 @@ export class PedidoUseCases {
     }
 
     private async baixarPagamentoPedido(pedido: Pedido): Promise<PedidoVersao> {
+        //TODO CHAMAR API DE PAGAMENTO
         const pagamento: Pagamento = await this.pagamentoUseCases.buscaUltimaVersao(pedido.getCodigoPedido()!).then()
 
         pedido.setPagamento(pagamento)

@@ -1,9 +1,3 @@
-import {
-    post_cliente, 
-    put_cliente,
-    post_cliente_autenticacao
-
-} from 'domains/cliente/adapter/driver/rest/swagger/acesso.swagger'
 
 import {
     post_produto, 
@@ -19,11 +13,6 @@ import {
 
 } from 'domains/pedido/adapter/driver/rest/swagger/pedido.swagger'
 
-import {
-    post_webhook_mercadopago
-
-} from 'domains/pagamento/adapter/driver/rest/swagger/pagamento.swagger'
-
 export const swagger = {
     swagger: "2.0",
     info: {
@@ -36,31 +25,20 @@ export const swagger = {
     schemes: ["https", "http"],
     tags: [                   
         {
-            name: 'Cliente',             
-            description: 'APIs do domínio de Clientes'       
-        },  {
             name: 'Pedido',             
             description: 'APIs do domínio de Pedidos'       
         },  {
             name: 'Produto',             
             description: 'APIs para gerenciamento de produtos'       
-        }, {
-            name: 'Pagamento',             
-            description: 'APIs do domínio de Pagamento'       
         }
-        
     ],
     definitions: {
-        post_cliente,
-        put_cliente,
-        post_cliente_autenticacao,
         post_produto,
         put_produto,
         post_pedido,
         put_pedido_status,
         post_webhook_pedido,
-        put_pedido,
-        post_webhook_mercadopago
+        put_pedido
     },
     securityDefinitions: {
         JWT: {
