@@ -3,24 +3,19 @@ import { ItemPedido } from "domains/pedido/core/entities/itemPedido";
 import { PedidoVersao } from "domains/pedido/core/entities/pedido.versao";
 import { PedidoDatabase } from "domains/pedido/adapter/driven/infra/database/pedido.database"
 import { CustomError } from "domains/suporte/entities/custom.error"
-import { ClienteUseCases } from "domains/cliente/core/applications/usecases/cliente.usecases";
-import { Cliente } from "domains/cliente/core/entities/cliente";
+import { Cliente } from "domains/pedido/core/entities/cliente";
 import { format } from "date-fns";
 import { ProdutoUseCases } from "./produto.usecases";
-import { PagamentoUseCases } from "domains/pagamento/core/applications/usecases/pagamento.usecases";
-import { MeioPagamento, Pagamento, StatusPagamento } from "domains/pagamento/core/entities/pagamento";
+import { MeioPagamento, Pagamento} from "domains/pedido/core/entities/pagamento";
+import axios from 'axios';
 
 export class PedidoUseCases {
 
     constructor(
         private readonly database: PedidoDatabase,
-        private readonly clienteUseCases: ClienteUseCases,
         private readonly produtoService: ProdutoUseCases,
-        private readonly pagamentoUseCases: PagamentoUseCases
     ) {
         this.database = database
-        this.clienteUseCases = clienteUseCases
-        this.pagamentoUseCases = pagamentoUseCases
     }
 
     async adiciona(cpf: string | null, itens: Array<ItemPedido>, codigoPedido: string | null = null): Promise<PedidoVersao> {
@@ -31,7 +26,8 @@ export class PedidoUseCases {
 
         if (cpf) {
             //TODO CONSULTA API CLIENTE 
-            cliente = await this.clienteUseCases.buscaUltimaVersao(cpf).then()
+            cliente = await this.consultarCliente(cpf).then()
+            //cliente = await this.clienteUseCases.buscaUltimaVersao(cpf).then()
         } else {
             cliente = null;
         }
@@ -82,7 +78,8 @@ export class PedidoUseCases {
 
         if (cpf) {
             //TODO CONSULTA API CLIENTE 
-            cliente = await this.clienteUseCases.buscaUltimaVersao(cpf).then()
+            cliente = await this.consultarCliente(cpf).then()
+            //cliente = await this.clienteUseCases.buscaUltimaVersao(cpf).then()
         } else {
             cliente = null;
         }
@@ -249,15 +246,24 @@ export class PedidoUseCases {
         console.info(pedido)
 
         //TODO CHAMAR API DE PAGAMENTO
-        await this.pagamentoUseCases.criar(new Pagamento(
-            pedido.getCliente()?.getCpf()!,
-            pedido.getCliente()?.getNome()!,
-            pedido.getCliente()?.getEmail()!,
-            pedido.getValorPedido(),
-            1,
-            MeioPagamento.PIX,
-            pedido.getCodigoPedido()!
-        )).then()
+        await this.criarPagamento(new Pagamento(
+                 pedido.getCliente()?.getCpf()!,
+                 pedido.getCliente()?.getNome()!,
+                 pedido.getCliente()?.getEmail()!,
+                 pedido.getValorPedido(),
+                 1,
+                 MeioPagamento.PIX,
+                 pedido.getCodigoPedido()!
+             )).then()
+        // await this.pagamentoUseCases.criar(new Pagamento(
+        //     pedido.getCliente()?.getCpf()!,
+        //     pedido.getCliente()?.getNome()!,
+        //     pedido.getCliente()?.getEmail()!,
+        //     pedido.getValorPedido(),
+        //     1,
+        //     MeioPagamento.PIX,
+        //     pedido.getCodigoPedido()!
+        // )).then()
 
         /** 
          * Normalmente eu faria os dados serem retornados na criação, 
@@ -269,7 +275,8 @@ export class PedidoUseCases {
         console.info(pedido)
 
         //TODO CHAMAR API DE PAGAMENTO
-        const pagamento = await this.pagamentoUseCases.buscaUltimaVersao(pedido.getCodigoPedido()!).then()
+        const pagamento = await this.consultarPagamento(pedido.getCodigoPedido()!).then()
+        //const pagamento = await this.pagamentoUseCases.buscaUltimaVersao(pedido.getCodigoPedido()!).then()
 
         pedido.setPagamento(pagamento)
 
@@ -294,7 +301,8 @@ export class PedidoUseCases {
 
     private async baixarPagamentoPedido(pedido: Pedido): Promise<PedidoVersao> {
         //TODO CHAMAR API DE PAGAMENTO
-        const pagamento: Pagamento = await this.pagamentoUseCases.buscaUltimaVersao(pedido.getCodigoPedido()!).then()
+        const pagamento = await this.consultarPagamento(pedido.getCodigoPedido()!).then()
+        //const pagamento: Pagamento = await this.pagamentoUseCases.buscaUltimaVersao(pedido.getCodigoPedido()!).then()
 
         pedido.setPagamento(pagamento)
         pedido.setStatus(StatusPedido.Preparacao)
@@ -305,5 +313,65 @@ export class PedidoUseCases {
         var pedidoVersao: PedidoVersao = await this.database.adiciona(pedido).then()
 
         return pedidoVersao
+    }
+
+    private async consultarCliente(cpf: string) {
+        try {
+          const cliente = await this.getClienteByCpf(cpf);
+          return cliente;
+        } catch (error) {
+          console.error(`Erro ao buscar o cliente: ${error}`);
+          return null;
+        }
+    }
+
+    private async consultarPagamento(codigoPedido: string) {
+        try {
+          const pedido = await this.getPagamentoByPedido(codigoPedido);
+          return pedido;
+        } catch (error) {
+          console.error(`Erro ao buscar o pedido: ${error}`);
+          return null;
+        }
+    }
+
+    private async criarPagamento(pagamento: Pagamento) {
+        try {
+          const pagamentoVersao = await this.createPagamento(pagamento);
+          return pagamentoVersao;
+        } catch (error) {
+          console.error(`Erro ao buscar o pedido: ${error}`);
+          return null;
+        }
+    }
+
+    private async getClienteByCpf(cpf: string) {
+        try {
+          const response = await axios.get(`http://localhost:31300/api/clientes/v1/${cpf}`);
+          return response.data;
+        } catch (error) {
+          console.error(`Error getClienteByCpf: ${error}`);
+          throw error;
+        }
+    }
+
+    private async getPagamentoByPedido(codigoPedido: string) {
+        try {
+          const response = await axios.get(`http://localhost:31301/api/pagamentos/v1/${codigoPedido}`);
+          return response.data;
+        } catch (error) {
+          console.error(`Error getClienteByCpf: ${error}`);
+          throw error;
+        }
+    }
+
+    private async createPagamento(pagamento: Pagamento) {
+        try {
+            const response = await axios.post('http://localhost:31301/api/pagamentos/v1', pagamento);
+            return response.data;
+        } catch (error) {
+            console.error(`Error creating pagamento: ${error}`);
+            throw error;
+        }
     }
 }

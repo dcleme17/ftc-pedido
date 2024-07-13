@@ -1,7 +1,7 @@
-import { Cliente } from "domains/cliente/core/entities/cliente"
+import { Cliente } from "domains/pedido/core/entities/cliente"
 import { PedidoVersao } from "./pedido.versao"
 import { ItemPedido } from "./itemPedido"
-import { Pagamento } from "domains/pagamento/core/entities/pagamento"
+import { Pagamento } from "domains/pedido/core/entities/pagamento"
 
 export enum EventosPedido {
     CRIADO = "CRIADO",

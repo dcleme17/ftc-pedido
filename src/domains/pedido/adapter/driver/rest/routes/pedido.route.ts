@@ -3,14 +3,8 @@ import { PedidoController } from "domains/pedido/adapter/driver/rest/controllers
 import { body, param } from 'express-validator'
 import { PedidoUseCases } from 'domains/pedido/core/applications/usecases/pedido.usecases';
 import { PedidoDatabase } from 'domains/pedido/adapter/driven/infra/database/pedido.database';
-import { ClienteUseCases } from 'domains/cliente/core/applications/usecases/cliente.usecases';
-import { ClienteDatabase } from 'domains/cliente/adapter/driven/infra/database/cliente.database';
 import { ProdutoDatabase } from 'domains/pedido/adapter/driven/infra/database/produto.database';
 import { ProdutoUseCases } from 'domains/pedido/core/applications/usecases/produto.usecases';
-import { PagamentoUseCases } from 'domains/pagamento/core/applications/usecases/pagamento.usecases';
-import { PagamentoDatabase } from 'domains/pagamento/adapter/driven/infra/database/pagamento.database';
-import { PagamentoExternal } from 'domains/pagamento/adapter/driven/infra/external/pagamento.external';
-import { Identity } from 'domains/cliente/adapter/driven/infra/identity/identity';
 
 const router = Router();
 
@@ -38,12 +32,7 @@ router.post('/v1',
 
     const service = new PedidoUseCases(
       new PedidoDatabase(), 
-      new ClienteUseCases(new ClienteDatabase(), new Identity()), 
-      new ProdutoUseCases(new ProdutoDatabase()),
-      new PagamentoUseCases(
-        new PagamentoDatabase(), 
-        new PagamentoExternal()
-      )
+      new ProdutoUseCases(new ProdutoDatabase())
     )
     const controller = new PedidoController(service)        
 
@@ -74,12 +63,7 @@ router.post('/v1',
 
     const service = new PedidoUseCases(
       new PedidoDatabase(), 
-      new ClienteUseCases(new ClienteDatabase(), new Identity()), 
-      new ProdutoUseCases(new ProdutoDatabase()),
-      new PagamentoUseCases(
-        new PagamentoDatabase(), 
-        new PagamentoExternal()
-      )
+      new ProdutoUseCases(new ProdutoDatabase())
     )
     const controller = new PedidoController(service)        
 
@@ -111,12 +95,7 @@ body('itens').notEmpty().isArray(),
 
     const service = new PedidoUseCases(
       new PedidoDatabase(), 
-      new ClienteUseCases(new ClienteDatabase(), new Identity()), 
-      new ProdutoUseCases(new ProdutoDatabase()),
-      new PagamentoUseCases(
-        new PagamentoDatabase(), 
-        new PagamentoExternal()
-      )      
+      new ProdutoUseCases(new ProdutoDatabase())
     )
     const controller = new PedidoController(service)           
 
@@ -142,12 +121,7 @@ body('itens').notEmpty().isArray(),
 
     const service = new PedidoUseCases(
       new PedidoDatabase(), 
-      new ClienteUseCases(new ClienteDatabase(), new Identity()), 
-      new ProdutoUseCases(new ProdutoDatabase()),
-      new PagamentoUseCases(
-        new PagamentoDatabase(), 
-        new PagamentoExternal()
-      )      
+      new ProdutoUseCases(new ProdutoDatabase())
     )
     const controller = new PedidoController(service)           
 
@@ -180,12 +154,7 @@ body('itens').notEmpty().isArray(),
   
       const service = new PedidoUseCases(
         new PedidoDatabase(), 
-        new ClienteUseCases(new ClienteDatabase(), new Identity()), 
-        new ProdutoUseCases(new ProdutoDatabase()),
-        new PagamentoUseCases(
-          new PagamentoDatabase(), 
-          new PagamentoExternal()
-        )      
+        new ProdutoUseCases(new ProdutoDatabase())
       )
       const controller = new PedidoController(service)           
   
@@ -210,12 +179,7 @@ router.get('/v1',
 
   const service = new PedidoUseCases(
     new PedidoDatabase(), 
-    new ClienteUseCases(new ClienteDatabase(), new Identity()), 
-    new ProdutoUseCases(new ProdutoDatabase()),
-    new PagamentoUseCases(
-      new PagamentoDatabase(), 
-      new PagamentoExternal()
-    )      
+    new ProdutoUseCases(new ProdutoDatabase())
   )
   const controller = new PedidoController(service)   
 
@@ -241,12 +205,7 @@ router.put('/v1/:codigoPedido/checkout/pix',
 
     const service = new PedidoUseCases(
       new PedidoDatabase(), 
-      new ClienteUseCases(new ClienteDatabase(), new Identity()), 
-      new ProdutoUseCases(new ProdutoDatabase()),
-      new PagamentoUseCases(
-        new PagamentoDatabase(), 
-        new PagamentoExternal()
-      )      
+      new ProdutoUseCases(new ProdutoDatabase())
     )
     const controller = new PedidoController(service)   
 

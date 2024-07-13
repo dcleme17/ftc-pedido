@@ -2,12 +2,12 @@ import { Pedido } from "domains/pedido/core/entities/pedido";
 import { MongoDB} from "domains/suporte/infra/database/mongodb";
 import { IPedido } from "domains/pedido/core/applications/ports/pedido.port";
 import { PedidoVersao } from "domains/pedido/core/entities/pedido.versao";
+import { ClienteVersao } from "domains/pedido/core/entities/cliente.versao";
+import { Cliente } from "domains/pedido/core/entities/cliente";
+import { PagamentoVersao } from "domains/pedido/core/entities/pagamento.versao";
+import { Pagamento } from "domains/pedido/core/entities/pagamento";
 import { format } from "date-fns"
 import { ObjectId } from "mongodb";
-import { Cliente } from "domains/cliente/core/entities/cliente";
-import { ClienteVersao } from "domains/cliente/core/entities/cliente.versao";
-import { Pagamento } from "domains/pagamento/core/entities/pagamento";
-import { PagamentoVersao } from "domains/pagamento/core/entities/pagamento.versao";
 
 export class PedidoDatabase extends MongoDB implements IPedido {
 
