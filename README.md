@@ -6,4 +6,4 @@ Para implementar o padrão SAGA utilizamos uma abordagem ORQUESTRADA para poderm
 
 Swagger para simular o fluxo de checkout https://pedido-backend-91827266597.southamerica-east1.run.app/api-docs/#/Pedido/putpedidocheckoutpix
 
-Swagger para simular o webhook de pagamentohttps://pagamento-backend-91827266597.southamerica-east1.run.app/api-docs/#/Pagamento/postWebhookMercadopago
+Swagger para simular o webhook de pagamento https://pagamento-backend-91827266597.southamerica-east1.run.app/api-docs/#/Pagamento/postWebhookMercadopago
