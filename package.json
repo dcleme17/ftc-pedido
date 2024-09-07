@@ -7,15 +7,18 @@
     "dev": "tsx watch src/application",
     "start": "tsx src/application",
     "swagger": "tsx src/swagger.ts",
-    "build": "tsc ",
     "lint": "eslint -c .ts src",
     "lint:fix": "eslint --ext .ts src --fix",
-    "test": "jest"
+    "test": "jest",
+    "build": "gcloud builds submit --tag southamerica-east1-docker.pkg.dev/fiap-tech-challenge-5soat/fiap-docker/pedido-backend:latest",
+    "deploy": "gcloud run services replace deployment.yaml",
+    "policy": "gcloud run services set-iam-policy pedido-backend policy.yaml"
   },
   "keywords": [],
   "author": "Ciro Oshiro, Daniel Clemente, Eliane Yumi",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/workflows": "^3.4.0",
     "@types/cors": "^2.8.17",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/qrcode": "^1.5.5",

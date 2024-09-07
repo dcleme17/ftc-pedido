@@ -12,8 +12,8 @@ export enum EventosPedido {
 
 export enum StatusPedido {
     Recebido = 'Recebido',
-    Preparacao = 'Em Preparação',
     Pagamento = 'Aguardando Pagamento',
+    Preparacao = 'Em Preparação',
     Pronto = 'Pronto',
     Finalizado = 'Finalizado',
     Cancelado = 'Cancelado'

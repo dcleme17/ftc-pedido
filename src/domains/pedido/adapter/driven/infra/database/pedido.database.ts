@@ -133,14 +133,17 @@ export class PedidoDatabase extends MongoDB implements IPedido {
             data?.valor
         )
 
-        const cliente = new Cliente(
-            data?.cliente.cpf, 
-            data?.cliente.nome, 
-            data?.cliente.email,
-            new ClienteVersao(
-                data?.cliente.versao._versao,
-                data?.cliente.versao._dataCadastro
-        ))
+        let cliente;
+        if (data.cliente) {
+        cliente = new Cliente(
+                data.cliente.cpf, 
+                data.cliente.nome, 
+                data.cliente.email,
+                new ClienteVersao(
+                    data?.cliente.versao._versao,
+                    data?.cliente.versao._dataCadastro
+            ))
+        }
 
         pedido.setCliente(cliente)
 

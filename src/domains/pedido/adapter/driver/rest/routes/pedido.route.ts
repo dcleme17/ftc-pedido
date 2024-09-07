@@ -5,6 +5,7 @@ import { PedidoUseCases } from 'domains/pedido/core/applications/usecases/pedido
 import { PedidoDatabase } from 'domains/pedido/adapter/driven/infra/database/pedido.database';
 import { ProdutoDatabase } from 'domains/pedido/adapter/driven/infra/database/produto.database';
 import { ProdutoUseCases } from 'domains/pedido/core/applications/usecases/produto.usecases';
+import { CheckoutWorkflow } from '../../../driven/infra/workflows/checkout.workflow';
 
 const router = Router();
 
@@ -31,6 +32,7 @@ router.post('/v1',
     */
 
     const service = new PedidoUseCases(
+      new CheckoutWorkflow(),
       new PedidoDatabase(), 
       new ProdutoUseCases(new ProdutoDatabase())
     )
@@ -62,6 +64,7 @@ router.post('/v1',
     */
 
     const service = new PedidoUseCases(
+      new CheckoutWorkflow(),
       new PedidoDatabase(), 
       new ProdutoUseCases(new ProdutoDatabase())
     )
@@ -94,6 +97,7 @@ body('itens').notEmpty().isArray(),
     */   
 
     const service = new PedidoUseCases(
+      new CheckoutWorkflow(),
       new PedidoDatabase(), 
       new ProdutoUseCases(new ProdutoDatabase())
     )
@@ -120,6 +124,7 @@ body('itens').notEmpty().isArray(),
     */   
 
     const service = new PedidoUseCases(
+      new CheckoutWorkflow(),
       new PedidoDatabase(), 
       new ProdutoUseCases(new ProdutoDatabase())
     )
@@ -153,6 +158,7 @@ body('itens').notEmpty().isArray(),
       */   
   
       const service = new PedidoUseCases(
+        new CheckoutWorkflow(),
         new PedidoDatabase(), 
         new ProdutoUseCases(new ProdutoDatabase())
       )
@@ -178,6 +184,7 @@ router.get('/v1',
   */        
 
   const service = new PedidoUseCases(
+    new CheckoutWorkflow(),
     new PedidoDatabase(), 
     new ProdutoUseCases(new ProdutoDatabase())
   )
@@ -204,6 +211,7 @@ router.put('/v1/:codigoPedido/checkout/pix',
     */ 
 
     const service = new PedidoUseCases(
+      new CheckoutWorkflow(),
       new PedidoDatabase(), 
       new ProdutoUseCases(new ProdutoDatabase())
     )

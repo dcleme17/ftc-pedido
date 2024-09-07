@@ -1,0 +1,1 @@
+gcloud workflows deploy checkout --source workflows.checkout.yml --env-vars-file ./workflows.checkout.env.yml --location southamerica-east1 

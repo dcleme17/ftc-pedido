@@ -1,0 +1,111 @@
+main:
+  params: [input]
+  steps:
+    - fecha_pedido:
+        call: atualiza_pedido
+        args:
+            codigo_pedido: ${input.codigoPedido}
+            status: 'Aguardando Pagamento'
+    - cria_link_callback:
+        call: events.create_callback_endpoint
+        args:
+            http_callback_method: "POST"
+        result: cria_link_callback_result
+    - cria_pagamento:
+        try:
+          call: http.post
+          args: 
+            url: '${sys.get_env("PAGAMENTO_HOST") + "/api/pagamentos/v1"}'
+            body: 
+              email: 'dcleme17@gmail.com'
+              valor: ${input.valorPedido}
+              parcelamento: 1
+              meio: ${input.meio}
+              identificadorExterno: ${input.codigoPedido}
+              workflow: ${cria_link_callback_result}
+          result: link_callback
+        except:
+          as: e
+          steps:
+            - rollback:
+                call: cria_pagamento_rollback
+                args:
+                  codigo_pedido: ${input.codigoPedido}
+            - cria_pagamento_error:
+                raise: ${e}
+    - recebe_pagamento_callback:
+        call: events.await_callback
+        args:
+            callback: ${cria_link_callback_result}
+            timeout: 43200
+        result: recebe_pagamento_callback_result
+    - print_callback_request:
+        call: sys.log
+        args:
+            severity: "INFO"
+            text: ${"Received " + json.encode_to_string(recebe_pagamento_callback_result.http_request)} 
+    - avalia_status_pagamento:
+        switch:
+          - condition: ${recebe_pagamento_callback_result.http_request.body.status == "opened"}
+            next: recebe_pagamento_callback
+          - condition: ${recebe_pagamento_callback_result.http_request.body.status == "closed"}
+            next: baixa_pagamento
+          - condition: ${recebe_pagamento_callback_result.http_request.body.status == "expired"}
+            next: cancela_pagamento
+    - baixa_pagamento:
+        call: atualiza_pagamento
+        args:
+          codigo_pedido: ${input.codigoPedido}
+          status: 'RECEBIDO'
+        next: envia_pedido_para_preparo
+    - envia_pedido_para_preparo:
+        call: atualiza_pedido
+        args:
+          codigo_pedido: ${input.codigoPedido}
+          status: 'Em Preparação'
+        next: finaliza_checkout
+    - cancela_pagamento:
+        call: atualiza_pagamento
+        args:
+          codigo_pedido: ${input.codigoPedido}
+          status: 'EXPIRADO'
+        next: rollback_pedido
+    - rollback_pedido: 
+        call: atualiza_pedido
+        args:
+          codigo_pedido: ${input.codigoPedido}
+          status: 'Recebido'
+        next: finaliza_checkout_erro
+    - finaliza_checkout:
+        return: 'Checkout finalizado'
+    - finaliza_checkout_erro:
+        raise: 'checkout finalizado com erro'
+    
+atualiza_pedido:
+  params: [codigo_pedido, status]
+  steps:
+    - rollback: 
+        call: http.put
+        args:
+          url: '${sys.get_env("PEDIDO_HOST") + "/api/pedidos/v1/" + codigo_pedido + "/status"}'
+          body: 
+            statusPedido: ${status}
+cria_pagamento_rollback:
+  params: [codigo_pedido]
+  steps:
+    - rollback: 
+        call: http.put
+        args:
+          url: '${sys.get_env("PEDIDO_HOST") + "/api/pedidos/v1/" + codigo_pedido + "/status"}'
+          body: 
+            statusPedido: 'Recebido'
+atualiza_pagamento:
+  params: [codigo_pedido, status]
+  steps:
+    - rollback: 
+        call: http.put
+        args:
+          url: '${sys.get_env("PAGAMENTO_HOST") + "/api/pagamentos/v1/" + codigo_pedido}'
+          body: 
+            status: ${status}
+        

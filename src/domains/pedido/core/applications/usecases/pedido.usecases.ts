@@ -6,12 +6,14 @@ import { CustomError } from "domains/suporte/entities/custom.error"
 import { Cliente } from "domains/pedido/core/entities/cliente";
 import { format } from "date-fns";
 import { ProdutoUseCases } from "./produto.usecases";
-import { MeioPagamento, Pagamento} from "domains/pedido/core/entities/pagamento";
+import { Pagamento} from "domains/pedido/core/entities/pagamento";
+import { CheckoutWorkflow } from 'domains/pedido/adapter/driven/infra/workflows/checkout.workflow'
 import axios from 'axios';
 
 export class PedidoUseCases {
 
     constructor(
+        private readonly workflow: CheckoutWorkflow,
         private readonly database: PedidoDatabase,
         private readonly produtoService: ProdutoUseCases,
     ) {
@@ -174,14 +176,10 @@ export class PedidoUseCases {
 
         if (!ultimaVersao) {
             throw new CustomError('Pedido não encontrado', 404, false, [])
-        }
+        }   
 
-        if (ultimaVersao.getStatus() !== StatusPedido.Recebido) {
-            throw new CustomError('O pedido não pode mais ser alterado', 400, false, [])
-        }      
-
-        var cpf = ultimaVersao.getCliente()?.getCpf()!;
-        var itens = ultimaVersao.getItens();
+        const cpf = ultimaVersao.getCliente()?.getCpf()!;
+        const itens = ultimaVersao.getItens();
 
         /** Aqui deveria ser uma única transação para não ter problemas ... */
         /** Mas dado o horário, me recuso. */
@@ -231,61 +229,16 @@ export class PedidoUseCases {
             throw new CustomError('Valor do pedido menor do que o permitido', 400, false, [])
         }
 
-        if (pedido.getStatus() !== StatusPedido.Recebido) {
-            throw new CustomError('O status do pedido é inválido', 400, false, [])
-        }     
+        // if (pedido.getStatus() !== StatusPedido.Recebido) {
+        //     throw new CustomError('O status do pedido é inválido', 400, false, [])
+        // }     
         
         if (pedido.getData()) {
             //TODO: validar a data do pedido
         }
 
-        /** Solicitar Pagamento */
+        return this.workflow.checkout({...pedido, meio: 'PIX'}).then()
 
-        pedido.setStatus(StatusPedido.Pagamento)
-
-        console.info(pedido)
-
-        //TODO CHAMAR API DE PAGAMENTO
-        await this.criarPagamento(new Pagamento(
-                 pedido.getCliente()?.getCpf()!,
-                 pedido.getCliente()?.getNome()!,
-                 pedido.getCliente()?.getEmail()!,
-                 pedido.getValorPedido(),
-                 1,
-                 MeioPagamento.PIX,
-                 pedido.getCodigoPedido()!
-             )).then()
-        // await this.pagamentoUseCases.criar(new Pagamento(
-        //     pedido.getCliente()?.getCpf()!,
-        //     pedido.getCliente()?.getNome()!,
-        //     pedido.getCliente()?.getEmail()!,
-        //     pedido.getValorPedido(),
-        //     1,
-        //     MeioPagamento.PIX,
-        //     pedido.getCodigoPedido()!
-        // )).then()
-
-        /** 
-         * Normalmente eu faria os dados serem retornados na criação, 
-         * porém para manter o padrão criado na fase antetior estou fazendo uma nova consulta.
-         * Definitivamente não gosto desse formato por fazer uma query 
-         * para trazer dados que já estão em memória.
-         * */
-
-        console.info(pedido)
-
-        //TODO CHAMAR API DE PAGAMENTO
-        const pagamento = await this.consultarPagamento(pedido.getCodigoPedido()!).then()
-        //const pagamento = await this.pagamentoUseCases.buscaUltimaVersao(pedido.getCodigoPedido()!).then()
-
-        pedido.setPagamento(pagamento)
-
-        const pedidoVersao: Pedido = await this.database.adiciona(pedido).then()
-        
-        return {
-            pedido: pedidoVersao,
-            pagamento
-        }
     }
 
     async webhook(codigoPedido: string, evento: string): Promise<any> {
@@ -335,16 +288,6 @@ export class PedidoUseCases {
         }
     }
 
-    private async criarPagamento(pagamento: Pagamento) {
-        try {
-          const pagamentoVersao = await this.createPagamento(pagamento);
-          return pagamentoVersao;
-        } catch (error) {
-          console.error(`Erro ao buscar o pedido: ${error}`);
-          return null;
-        }
-    }
-
     private async getClienteByCpf(cpf: string) {
         try {
           const response = await axios.get(`http://localhost:31300/api/clientes/v1/${cpf}`);
@@ -362,16 +305,6 @@ export class PedidoUseCases {
         } catch (error) {
           console.error(`Error getClienteByCpf: ${error}`);
           throw error;
-        }
-    }
-
-    private async createPagamento(pagamento: Pagamento) {
-        try {
-            const response = await axios.post('http://localhost:31301/api/pagamentos/v1', pagamento);
-            return response.data;
-        } catch (error) {
-            console.error(`Error creating pagamento: ${error}`);
-            throw error;
         }
     }
 }
